@@ -1,0 +1,16 @@
+{
+  "port": "8080",
+  "db": {
+    "url": "mongodb://localhost:27017/notify"
+  },
+  "session": {
+    "name": "notifyToken"
+  },
+  "accessControl": {
+    "origins": "http://localhost:4200",
+    "methods": [ "GET", "POST", "PATCH", "DELETE", "OPTIONS" ],
+    "headers": [ "Content-Type" ],
+    "credentials": true,
+    "maxAge": "0"
+  }
+}
