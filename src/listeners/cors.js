@@ -2,13 +2,13 @@
 
 const {accessControl} = require('../../config')
 
-module.exports = (req, res) => {
+module.exports = (req, res, next) => {
   // Since all requests are expected to be made with 'WithCredentials' flag set
   // to 'true', we need to pass the following headers on each request.
   res.setHeader('Access-Control-Allow-Origin', accessControl.origins)
   res.setHeader('Access-Control-Allow-Credentials', accessControl.credentials)
 
-  if (req.method !== 'OPTIONS') return true
+  if (req.method !== 'OPTIONS') return next()
 
   // Only when the request is preflighted, we provide info about supported
   // METHODS and HEADERS.
@@ -17,5 +17,4 @@ module.exports = (req, res) => {
   res.setHeader('Access-Control-Max-Age', accessControl.maxAge)
   
   res.end()
-  return false
 }
