@@ -11,10 +11,7 @@ const listener = createListener(notifyStore.store, {
       jsonAPISerializer,
       {
         inflectType: false,
-        inflectKeys: false,
-        authorize: contextRequest => {
-          return Promise.resolve()
-        }
+        inflectKeys: false
       }
     ]
   ]
