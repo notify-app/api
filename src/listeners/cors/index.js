@@ -1,6 +1,6 @@
 'use strict'
 
-const {accessControl} = require('../../config')
+const {accessControl} = require('../../../config')
 
 module.exports = (req, res, next) => {
   // Since all requests are expected to be made with 'WithCredentials' flag set
