@@ -9,6 +9,7 @@
   "author": "Luca Tabone <taboneluca3@gmail.com>",
   "license": "ISC",
   "dependencies": {
+    "fortune": "5.0.2",
     "fortune-http": "1.0.0",
     "fortune-json-api": "2.0.14",
     "notify-store": "0.1.0",
