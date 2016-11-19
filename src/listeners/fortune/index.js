@@ -20,6 +20,6 @@ const listener = createListener(notifyStore.store, {
 module.exports = function (req, res) {
   listener(req, res)
     .catch(function (err) {
-      console.error(err)
+      console.error('FortuneJS Error:', err.message)
     })
 }
