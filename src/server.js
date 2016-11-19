@@ -1,6 +1,7 @@
 'use strict'
 
 const http = require('http')
+const {worker} = require('ipc-emitter')
 const middleware = require('notify-middleware')
 
 const listeners = require('./listeners')
@@ -11,5 +12,5 @@ const app = middleware()
 app.use(...listeners)
 
 const server = http.createServer(app).listen(config.port, () => {
-  console.info(`api server: listening on port ${config.port}`)
+  worker.emit('logs:info', 'api', `listening on port ${config.port}`)
 })
