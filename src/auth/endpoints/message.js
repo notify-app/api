@@ -65,8 +65,8 @@ function authFind (requestOptions, user, notifyStore) {
  *                                 own details. Rejected otherwise.
  */
 function authCreate (requestOptions, user) {
-  const userValid = requestOptions.payload.user === user.id
-  const roomValid = user.rooms.indexOf(requestOptions.payload.room) !== -1
+  const userValid = requestOptions.payload[0].user === user.id
+  const roomValid = user.rooms.indexOf(requestOptions.payload[0].room) !== -1
 
   if (userValid && roomValid) return Promise.resolve()
 
