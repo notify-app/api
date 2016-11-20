@@ -5,7 +5,8 @@
     "url": "mongodb://localhost:27017/notify"
   },
   "session": {
-    "name": "notifyToken"
+    "name": "notifyToken",
+    "maxAge": 2628000
   },
   "accessControl": {
     "origins": "http://localhost:4200",

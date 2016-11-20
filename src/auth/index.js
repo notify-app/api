@@ -17,7 +17,6 @@ module.exports = (notifyStoreInst, requestOptions) => {
   notifyStore = notifyStoreInst
 
   return parseCookie(requestOptions.meta.headers.cookie)
-    .then(retrieveToken)
     .then(retrieveUser)
     .then(verify.bind(null, requestOptions))
     .catch(err => {
@@ -56,25 +55,6 @@ function parseCookie (cookieHeader) {
 }
 
 /**
- * retrieveToken retrieves the Access Token info, linked with the user consuming
- * the api, from the Database.
- * @param  {String} token The Access Token retrieved from the HTTP Request
- *                        Headers.
- * @return {Promise}      Resolved if cookie is found and still valid. Rejected
- *                        otherwise.
- */
-function retrieveToken (token) {
-  return notifyStore.store.find(notifyStore.types.TOKENS, undefined, {
-    match: {
-      token: token
-    }
-  }).then(({payload}) => {
-    if (payload.count > 0) return Promise.resolve(payload.records[0])
-    return Promise.reject({ type: errors.UN_AUTHORIZED })
-  })
-}
-
-/**
  * retrieveUser retrieves the user info of the consumer from the Database.
  * @param  {String} token The Access Token ID to be used to retrieve the user
  *                        info.
@@ -82,14 +62,9 @@ function retrieveToken (token) {
  *                        token provided. Rejected otherwise.
  */
 function retrieveUser (token) {
-  return notifyStore.store.find(notifyStore.types.USERS, undefined, {
-    match: {
-      token: token.id
-    }
-  }).then(({payload}) => {
-    if (payload.count > 0) return Promise.resolve(payload.records[0])
-    return Promise.reject({ type: errors.UN_AUTHORIZED })
-  })
+  return utils.getUserByToken(notifyStore, token, config.session.maxAge)
+    .then(({payload}) => payload.records[0])
+    .catch(() => Promise.reject({ type: errors.UN_AUTHORIZED }))
 }
 
 /**
