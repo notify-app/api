@@ -15,6 +15,7 @@
     "ipc-emitter": "0.1.6",
     "minimist": "1.2.0",
     "notify-middleware": "0.1.0",
-    "notify-store": "0.1.0"
+    "notify-store": "0.1.0",
+    "notify-utils": "0.1.0"
   }
 }

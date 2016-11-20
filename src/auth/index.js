@@ -1,6 +1,6 @@
 'use strict'
 
-const qs = require('querystring')
+const utils = require('notify-utils')
 
 const config = require('../../config')
 const errors = require('./errors')
@@ -44,15 +44,15 @@ module.exports = (notifyStoreInst, requestOptions) => {
 /**
  * parseCookie parses the HTTP Request header to retrieve the Access Token of
  * the logged in user.
- * @param  {Object} cookieHeader Object listing all the available cookies.
+ * @param  {String} cookieHeader String listing all the available cookies.
  * @return {Promise}             Resolved when the user is logged in and the
  *                               Access Token is retrieved. Rejected otherwise.
  */
 function parseCookie (cookieHeader) {
-  const cookies = qs.parse(cookieHeader, '; ', '=')
-  const token = cookies[config.session.name]
-  if (token === undefined) return Promise.reject({ type: errors.UN_AUTHORIZED })
-  return Promise.resolve(token)
+  return utils.getCookieValue(cookieHeader, config.session.name)
+    .catch(() => {
+      return Promise.reject({ type: errors.UN_AUTHORIZED })
+    })
 }
 
 /**
