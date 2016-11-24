@@ -12,7 +12,7 @@
     "fortune": "5.0.2",
     "fortune-http": "1.0.0",
     "fortune-json-api": "2.0.14",
-    "ipc-emitter": "0.2.0",
+    "ipc-emitter": "0.2.1",
     "minimist": "1.2.0",
     "notify-middleware": "0.1.0",
     "notify-store": "0.1.0",
