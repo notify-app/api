@@ -84,6 +84,12 @@ function authCreate (requestOptions, user) {
  *                                 own details. Rejected otherwise.
  */
 function authUpdate (requestOptions, user) {
+  const changes = requestOptions.payload[0].replace
+
+  if ('room' in changes || 'user' in changes) {
+    return Promise.reject({ type: errors.BAD_REQUEST })
+  }
+
   if (user.messages.indexOf(requestOptions.ids[0]) === -1) {
     return Promise.reject({ type: errors.NOT_FOUND })
   }
