@@ -23,6 +23,10 @@ module.exports = (requestOptions, user) => {
  *                                 own details. Rejected otherwise.
  */
 function authUpdate (requestOptions, user) {
+  const changes = requestOptions.payload[0].replace
+
+  if ('username' in changes) return Promise.reject({ type: errors.BAD_REQUEST })
+
   if (user.id === requestOptions.ids[0]) return Promise.resolve()
   return Promise.reject({ type: errors.NOT_FOUND })
 }
