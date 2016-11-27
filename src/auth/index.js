@@ -11,11 +11,7 @@ const notFoundError = require('./errors/not-found')
 const unAuthorizedError = require('./errors/un-authorized')
 const methodNotAllowedError = require('./errors/method-not-allowed')
 
-let notifyStore = null
-
-module.exports = (notifyStoreInst, requestOptions) => {
-  notifyStore = notifyStoreInst
-
+module.exports = (notifyStore, requestOptions) => {
   return parseCookie(requestOptions.meta.headers.cookie)
     .then(retrieveUser)
     .then(verify.bind(null, requestOptions))
@@ -38,46 +34,46 @@ module.exports = (notifyStoreInst, requestOptions) => {
         }
       }
     })
-}
 
-/**
- * parseCookie parses the HTTP Request header to retrieve the Access Token of
- * the logged in user.
- * @param  {String} cookieHeader String listing all the available cookies.
- * @return {Promise}             Resolved when the user is logged in and the
- *                               Access Token is retrieved. Rejected otherwise.
- */
-function parseCookie (cookieHeader) {
-  return utils.getCookieValue(cookieHeader, config.session.name)
-    .catch(() => {
-      return Promise.reject({ type: errors.UN_AUTHORIZED })
-    })
-}
+  /**
+   * parseCookie parses the HTTP Request header to retrieve the Access Token of
+   * the logged in user.
+   * @param  {String} cookieHeader String listing all the available cookies.
+   * @return {Promise}             Resolved when the user is logged in and the
+   *                               Access Token is retrieved. Rejected otherwise.
+   */
+  function parseCookie (cookieHeader) {
+    return utils.getCookieValue(cookieHeader, config.session.name)
+      .catch(() => {
+        return Promise.reject({ type: errors.UN_AUTHORIZED })
+      })
+  }
 
-/**
- * retrieveUser retrieves the user info of the consumer from the Database.
- * @param  {String} token The Access Token ID to be used to retrieve the user
- *                        info.
- * @return {Promise}      Resolved if a user is found to be linked with the
- *                        token provided. Rejected otherwise.
- */
-function retrieveUser (token) {
-  return utils.getUserByToken(notifyStore, token, config.session.maxAge)
-    .then(({payload}) => payload.records[0])
-    .catch(() => Promise.reject({ type: errors.UN_AUTHORIZED }))
-}
+  /**
+   * retrieveUser retrieves the user info of the consumer from the Database.
+   * @param  {String} token The Access Token ID to be used to retrieve the user
+   *                        info.
+   * @return {Promise}      Resolved if a user is found to be linked with the
+   *                        token provided. Rejected otherwise.
+   */
+  function retrieveUser (token) {
+    return utils.getUserByToken(notifyStore, token, config.session.maxAge)
+      .then(({payload}) => payload.records[0])
+      .catch(() => Promise.reject({ type: errors.UN_AUTHORIZED }))
+  }
 
-/**
- * verify verfies whether the user has access to the data the consumer is trying
- * to access/modify.
- * @param  {Object} requestOptions Info about the request done by the user.
- * @param  {Object} user           Info about the consumer
- * @return {Promise}               Resolved if the user has access to the data.
- *                                 Rejected otherwise.
- */
-function verify (requestOptions, user) {
-  const {type} = requestOptions
-  if (type in endpoints) {
-    return endpoints[type](requestOptions, user, notifyStore)
+  /**
+   * verify verfies whether the user has access to the data the consumer is trying
+   * to access/modify.
+   * @param  {Object} requestOptions Info about the request done by the user.
+   * @param  {Object} user           Info about the consumer
+   * @return {Promise}               Resolved if the user has access to the data.
+   *                                 Rejected otherwise.
+   */
+  function verify (requestOptions, user) {
+    const {type} = requestOptions
+    if (type in endpoints) {
+      return endpoints[type](requestOptions, user, notifyStore)
+    }
   }
 }
