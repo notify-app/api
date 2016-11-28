@@ -68,6 +68,8 @@ function authCreate (requestOptions, user) {
   const userValid = requestOptions.payload[0].user === user.id
   const roomValid = user.rooms.indexOf(requestOptions.payload[0].room) !== -1
 
+  requestOptions.payload[0].created = new Date()
+
   if (userValid && roomValid) return Promise.resolve()
 
   return Promise.reject({
