@@ -1,7 +1,5 @@
 'use strict'
 
-const fortune = require('fortune')
-
-module.exports = (err) => {
+module.exports = (fortune, err) => {
   return new fortune.errors.BadRequestError('Bad Request', err.message)
 }

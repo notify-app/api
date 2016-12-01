@@ -18,16 +18,16 @@ module.exports = (notifyStore, requestOptions) => {
     .catch(err => {
       switch (err.type) {
         case errors.BAD_REQUEST: {
-          throw badRequestError(err)
+          throw badRequestError(notifyStore.fortune, err)
         }
         case errors.NOT_FOUND: {
-          throw notFoundError(err)
+          throw notFoundError(notifyStore.fortune, err)
         }
         case errors.UN_AUTHORIZED: {
-          throw unAuthorizedError(err)
+          throw unAuthorizedError(notifyStore.fortune, err)
         }
         case errors.METHOD_NOT_ALLOWED: {
-          throw methodNotAllowedError(err)
+          throw methodNotAllowedError(notifyStore.fortune, err)
         }
         default: {
           throw new Error(err)
