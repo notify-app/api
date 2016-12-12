@@ -43,7 +43,7 @@ module.exports = (notifyStore, requestOptions) => {
    *                               Access Token is retrieved. Rejected otherwise.
    */
   function parseCookie (cookieHeader) {
-    return utils.getCookieValue(cookieHeader, config.session.name)
+    return utils.getCookieValue(cookieHeader, config.session.cookie)
       .catch(() => {
         return Promise.reject({ type: errors.UN_AUTHORIZED })
       })

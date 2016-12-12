@@ -5,7 +5,7 @@
     "url": "mongodb://localhost:27017/notify"
   },
   "session": {
-    "name": "notifyToken",
+    "cookie": "notifyToken",
     "maxAge": 2628000
   },
   "accessControl": {
