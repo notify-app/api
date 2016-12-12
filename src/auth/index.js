@@ -13,8 +13,8 @@ const methodNotAllowedError = require('./errors/method-not-allowed')
 
 module.exports = (notifyStore, requestOptions) => {
   return parseCookie(requestOptions.meta.headers.cookie)
-    .then(retrieveUser)
-    .then(verify.bind(null, requestOptions))
+    .then(token => retrieveUser(token, requestOptions))
+    .then(user => verify(user, requestOptions))
     .catch(err => {
       switch (err.type) {
         case errors.BAD_REQUEST: {
@@ -51,26 +51,34 @@ module.exports = (notifyStore, requestOptions) => {
 
   /**
    * retrieveUser retrieves the user info of the consumer from the Database.
-   * @param  {String} token The Access Token ID to be used to retrieve the user
-   *                        info.
-   * @return {Promise}      Resolved if a user is found to be linked with the
-   *                        token provided. Rejected otherwise.
+   * @param  {String} token          The Access Token ID to be used to retrieve
+   *                                 the user info.
+   * @param  {Object} requestOptions Info about the request done by the user.
+   * @return {Promise}               Resolved if a user is found to be linked
+   *                                 with the token provided. Rejected
+   *                                 otherwise.
    */
-  function retrieveUser (token) {
-    return utils.getUserByToken(notifyStore, token, config.session.maxAge)
+  function retrieveUser (token, requestOptions) {
+    const opts = {
+      notifyStore,
+      maxAge: config.session.maxAge,
+      origin: requestOptions.meta.headers.origin
+    }
+
+    return utils.getUserByToken(token, opts)
       .then(({payload}) => payload.records[0])
       .catch(() => Promise.reject({ type: errors.UN_AUTHORIZED }))
   }
 
   /**
-   * verify verfies whether the user has access to the data the consumer is trying
-   * to access/modify.
-   * @param  {Object} requestOptions Info about the request done by the user.
+   * verify verfies whether the user has access to the data the consumer is
+   * trying to access/modify.
    * @param  {Object} user           Info about the consumer
+   * @param  {Object} requestOptions Info about the request done by the user.
    * @return {Promise}               Resolved if the user has access to the data.
    *                                 Rejected otherwise.
    */
-  function verify (requestOptions, user) {
+  function verify (user, requestOptions) {
     const {type} = requestOptions
     if (type in endpoints) {
       return endpoints[type](requestOptions, user, notifyStore)
