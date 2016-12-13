@@ -12,7 +12,7 @@ const unAuthorizedError = require('./errors/un-authorized')
 const methodNotAllowedError = require('./errors/method-not-allowed')
 
 module.exports = (notifyStore, requestOptions) => {
-  return parseCookie(requestOptions.meta.headers.cookie)
+  return retrieveToken(requestOptions.meta.headers)
     .then(token => retrieveUser(token, requestOptions))
     .then(user => verify(user, requestOptions))
     .catch(err => {
@@ -36,17 +36,48 @@ module.exports = (notifyStore, requestOptions) => {
     })
 
   /**
-   * parseCookie parses the HTTP Request header to retrieve the Access Token of
+   * retrieveToken retrieves the token value from the request.
+   * @param  {Object} headers HTTP request headers.
+   * @return {Promise}        Resolved when the token value had been retrieved,
+   *                          rejected otherwise.
+   */
+  function retrieveToken (headers) {
+    return parseCookie(headers.cookie)
+      .catch(err => {
+        if (err.type !== errors.UN_AUTHORIZED) return Promise.reject(err)
+
+        return parseHeader(headers)
+      })
+  }
+
+  /**
+   * parseCookie parses the HTTP Request cookies to retrieve the Access Token of
    * the logged in user.
    * @param  {String} cookieHeader String listing all the available cookies.
    * @return {Promise}             Resolved when the user is logged in and the
-   *                               Access Token is retrieved. Rejected otherwise.
+   *                               Access Token is retrieved. Rejected
+   *                               otherwise.
    */
   function parseCookie (cookieHeader) {
     return utils.getCookieValue(cookieHeader, config.session.cookie)
       .catch(() => {
         return Promise.reject({ type: errors.UN_AUTHORIZED })
       })
+  }
+
+  /**
+   * parseHeader parses the HTTP Request header to retrieve the Access Token of
+   * the logged in user.
+   * @param  {Object} headers HTTP request headers.
+   * @return {Promise}        Resolved when the user is logged in and the
+   *                          Access Token is retrieved. Rejected
+   *                          otherwise.
+   */
+  function parseHeader (headers) {
+    const token = headers[config.session.header]
+    return (token === undefined)
+      ? Promise.reject({ type: errors.UN_AUTHORIZED })
+      : Promise.resolve(token)
   }
 
   /**
@@ -59,6 +90,7 @@ module.exports = (notifyStore, requestOptions) => {
    *                                 otherwise.
    */
   function retrieveUser (token, requestOptions) {
+    console.log(token)
     const opts = {
       notifyStore,
       maxAge: config.session.maxAge,

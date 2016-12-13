@@ -6,12 +6,13 @@
   },
   "session": {
     "cookie": "notifyToken",
+    "header": "x-notify-token",
     "maxAge": 2628000
   },
   "accessControl": {
     "origins": "http://localhost:4200",
     "methods": [ "GET", "POST", "PATCH", "DELETE", "OPTIONS" ],
-    "headers": [ "Content-Type" ],
+    "headers": [ "Content-Type", "x-notify-token" ],
     "credentials": true,
     "maxAge": "0"
   }
