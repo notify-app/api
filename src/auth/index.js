@@ -90,7 +90,6 @@ module.exports = (notifyStore, requestOptions) => {
    *                                 otherwise.
    */
   function retrieveUser (token, requestOptions) {
-    console.log(token)
     const opts = {
       notifyStore,
       maxAge: config.session.maxAge,
