@@ -14,7 +14,7 @@ module.exports = {
    * @type {Number}
    */
   BAD_REQUEST: 1,
-  
+
   /**
    * No resource found.
    * HTTP Status 404.

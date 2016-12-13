@@ -11,6 +11,6 @@ const app = middleware()
 
 app.use(...listeners)
 
-const server = http.createServer(app).listen(config.port, () => {
+http.createServer(app).listen(config.port, () => {
   worker.emit('logs:info', 'api', `listening on port ${config.port}`)
 })

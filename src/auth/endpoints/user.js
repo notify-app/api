@@ -6,7 +6,7 @@ module.exports = (requestOptions, user) => {
   switch (requestOptions.method) {
     // USERS can only be UPDATED by the owner.
     case 'update': return authUpdate(requestOptions, user)
-    
+
     // USERS cannot be DELETED.
     case 'delete': return authDelete()
 

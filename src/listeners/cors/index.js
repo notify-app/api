@@ -15,6 +15,6 @@ module.exports = (req, res, next) => {
   res.setHeader('Access-Control-Allow-Methods', accessControl.methods.join(','))
   res.setHeader('Access-Control-Allow-Headers', accessControl.headers.join(','))
   res.setHeader('Access-Control-Max-Age', accessControl.maxAge)
-  
+
   res.end()
 }

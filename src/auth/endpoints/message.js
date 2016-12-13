@@ -41,7 +41,7 @@ function authFind (requestOptions, user, notifyStore) {
 
     return Promise.resolve()
   }
-  
+
   // If the consumer is searching the message ID verify whether the ID he is
   // trying to access is within a room he is a member of.
   return notifyStore.store.find(notifyStore.types.MESSAGES, requestOptions.ids)
@@ -56,7 +56,7 @@ function authFind (requestOptions, user, notifyStore) {
 
 /**
  * authCreate verifies that:
- *   1. The author of the message is the consumer 
+ *   1. The author of the message is the consumer.
  *   2. The room where the message is created is a room which the user has
  *      access to.
  * @param  {Object} requestOptions Info about HTTP Request.
@@ -74,7 +74,7 @@ function authCreate (requestOptions, user) {
 
   return Promise.reject({
     type: errors.NOT_FOUND
-  })    
+  })
 }
 
 /**

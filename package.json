@@ -4,7 +4,7 @@
   "description": "JSONAPI Server for notify",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "standard"
   },
   "author": "Luca Tabone <taboneluca3@gmail.com>",
   "license": "ISC",
@@ -16,5 +16,8 @@
     "notify-middleware": "0.1.0",
     "notify-store": "0.1.0",
     "notify-utils": "0.1.0"
+  },
+  "devDependencies": {
+    "standard": "^8.6.0"
   }
 }

@@ -11,7 +11,7 @@ if (cluster.isMaster) {
   processArgs()
 
   worker.emit('logs:info', 'api', 'deploying servers')
-  for (let i = 0; i < config.instances; i ++) {
+  for (let i = 0; i < config.instances; i++) {
     const instance = cluster.fork()
     master.ack(instance.process)
   }
@@ -37,7 +37,7 @@ function processArgs () {
   if ('sessionHeader' in argv) {
     config.session.header = argv.sessionHeader
     const corsheaders = config.accessControl.headers
-    if (!!~corsheaders.indexOf(argv.sessionHeader)) {
+    if (corsheaders.indexOf(argv.sessionHeader) === -1) {
       corsheaders.push(argv.sessionHeader)
     }
   }
