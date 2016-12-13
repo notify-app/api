@@ -65,12 +65,12 @@ function authFind (requestOptions, user, notifyStore) {
  *                                 own details. Rejected otherwise.
  */
 function authCreate (requestOptions, user) {
-  const userValid = requestOptions.payload[0].user === user.id
   const roomValid = user.rooms.indexOf(requestOptions.payload[0].room) !== -1
 
+  requestOptions.payload[0].user = user.id
   requestOptions.payload[0].created = new Date()
 
-  if (userValid && roomValid) return Promise.resolve()
+  if (roomValid) return Promise.resolve()
 
   return Promise.reject({
     type: errors.NOT_FOUND
