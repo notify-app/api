@@ -20,6 +20,7 @@ module.exports = (requestOptions, user, notifyStore) => {
  *      2.2. By room ID containing pagination info.
  * @param  {Object} requestOptions Info about HTTP Request.
  * @param  {Object} user           Info about user.
+ * @param  {Object} notifyStore    Notify store instance.
  * @return {Promise}               Resolved when the consumer is updating his
  *                                 own details. Rejected otherwise.
  */
@@ -73,7 +74,7 @@ function authCreate (requestOptions, user) {
   if (roomValid) return Promise.resolve()
 
   return Promise.reject({
-    type: errors.NOT_FOUND
+    type: errors.UN_AUTHORIZED
   })
 }
 

@@ -55,7 +55,7 @@ function authUpdate (requestOptions, user) {
   delete requestOptions.payload[0].replace.username
 
   if (user.id === requestOptions.ids[0]) return Promise.resolve()
-  return Promise.reject({ type: errors.NOT_FOUND })
+  return Promise.reject({ type: errors.UN_AUTHORIZED })
 }
 
 /**

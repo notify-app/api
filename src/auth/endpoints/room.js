@@ -51,7 +51,7 @@ function authFind (requestOptions, user) {
  */
 function authUpdate (requestOptions, user) {
   if (user.rooms.indexOf(requestOptions.ids[0]) === -1) {
-    return Promise.reject({ type: errors.NOT_FOUND })
+    return Promise.reject({ type: errors.UN_AUTHORIZED })
   }
 }
 
