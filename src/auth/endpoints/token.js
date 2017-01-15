@@ -5,7 +5,7 @@ const errors = require('../errors')
 module.exports = (requestOptions, user) => {
   switch (requestOptions.method) {
     // TOKENS can only be CREATED.
-    case 'create': Promise.resolve()
+    case 'create': return Promise.resolve()
 
     // TOKENS cannot be MODIFIED, DELETED and READ.
     default: return Promise.reject({
