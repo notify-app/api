@@ -3,7 +3,6 @@
 const errors = require('../errors')
 const grants = require('../grants')
 
-
 module.exports = (requestOptions, user, notifyStore) => {
   switch (requestOptions.method) {
     // TOKENS can only be CREATED.
