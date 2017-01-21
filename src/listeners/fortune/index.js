@@ -2,7 +2,7 @@
 
 const createListener = require('fortune-http')
 const jsonAPISerializer = require('fortune-json-api')
-const {worker} = require('ipc-emitter')
+const logger = require('../../logger')
 
 const notifyStore = require('../../store')
 
@@ -21,6 +21,6 @@ const listener = createListener(notifyStore.store, {
 module.exports = function (req, res) {
   listener(req, res)
     .catch(function (err) {
-      worker.emit('logs:error', 'api', 'FortuneJS error:', err.message, err)
+      logger.error('FortuneJS error:', err.message, err)
     })
 }
