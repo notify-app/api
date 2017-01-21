@@ -15,7 +15,8 @@
     "minimist": "1.2.0",
     "notify-middleware": "0.1.0",
     "notify-store": "0.1.0",
-    "notify-utils": "0.1.0"
+    "notify-utils": "0.1.0",
+    "notify-logger": "0.1.0"
   },
   "devDependencies": {
     "standard": "^8.6.0"

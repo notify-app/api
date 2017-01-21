@@ -1,8 +1,8 @@
 'use strict'
 
 const cluster = require('cluster')
-const {worker} = require('ipc-emitter')
 const config = require('./config')
+const logger = require('./src/logger')
 
 if (cluster.isMaster) {
   const {master} = require('ipc-emitter')
@@ -10,7 +10,7 @@ if (cluster.isMaster) {
 
   processArgs()
 
-  worker.emit('logs:info', 'api', 'deploying servers')
+  logger.info('deploying servers')
   for (let i = 0; i < config.instances; i++) {
     const instance = cluster.fork()
     master.ack(instance.process)
@@ -18,7 +18,7 @@ if (cluster.isMaster) {
 } else {
   processArgs()
 
-  worker.emit('logs:info', 'api', `server deployed`, {
+  logger.info('server deployed', {
     id: cluster.worker.id,
     pid: process.pid
   })
