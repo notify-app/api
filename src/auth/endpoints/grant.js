@@ -4,17 +4,17 @@ const errors = require('../errors')
 
 module.exports = (requestOptions) => {
   switch (requestOptions.method) {
-    // STATES can be READ.
+    // GRANTS can be read.
     case 'find': return Promise.resolve()
 
-    // STATES cannot be CREATED, MODIFIED or DELETED from JSONAPI endpoint.
+    // GRANTS cannot be CREATED, MODIFIED or DELETED from a JSONAPI endpoint.
     default: return authDefault()
   }
 }
 
 /**
  * authDefault is invoked when the user tries to CREATE, MODIFY or DELETE a
- * STATE resource. When this happens the request is rejected.
+ * GRANT resource. When this happens the request is rejected.
  * @return {Promise} Rejected promise containing info about the allowed methods
  *                   and HTTP Response status.
  */

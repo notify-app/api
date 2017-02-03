@@ -5,5 +5,6 @@ module.exports = {
   states: require('./state'),
   tokens: require('./token'),
   rooms: require('./room'),
-  users: require('./user')
+  users: require('./user'),
+  grants: require('./grant'),
 }

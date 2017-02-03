@@ -1,16 +1,17 @@
 'use strict'
 
 const errors = require('../errors')
+const utils = require('../utils')
 
 module.exports = (requestOptions, user) => {
   switch (requestOptions.method) {
-    // ROOMS can only be read by USERS who are within the ROOM.
+    // ROOMS can only be read by USERS who are members the ROOM itself.
     case 'find': return authFind(requestOptions, user)
 
     // ROOMS can be created.
-    case 'create': return Promise.resolve()
+    case 'create': return authFind(requestOptions, user)
 
-    // ROOMS can only be UPDATED by USERS who are within the ROOM.
+    // ROOMS can only be UPDATED by USERS who are members the ROOM itself.
     case 'update': return authUpdate(requestOptions, user)
 
     // ROOMS cannot be DELETED.
@@ -19,8 +20,8 @@ module.exports = (requestOptions, user) => {
 }
 
 /**
- * authFind verifies that the rooms which are returned are all rooms which the
- * consumer is a member of.
+ * authFind verifies that the returned rooms are all rooms which the user is a
+ * member of
  * @param  {Object} requestOptions Info about HTTP Request.
  * @param  {Object} user           Info about user.
  * @return {Promise}               Resolved when the consumer is updating his
@@ -42,6 +43,15 @@ function authFind (requestOptions, user) {
 }
 
 /**
+ * authCreate sets restricted fields.
+ * @param  {Object} requestOptions Info about HTTP Request.
+ */
+function authCreate (requestOptions) {
+  // Default restricted fields.
+  requestOptions.payload[0].messages = []
+}
+
+/**
  * authUpdate verifies that the user is a member of the room (is authorized) he
  * is trying to update.
  * @param  {Object} requestOptions Info about HTTP Request.
@@ -50,8 +60,34 @@ function authFind (requestOptions, user) {
  *                                 own details. Rejected otherwise.
  */
 function authUpdate (requestOptions, user) {
+  /**
+   * List of fields which should not be included with the update payload.
+   * @type {Array}
+   */
+  const restrictedFields = [ 'private', 'messages' ]
+
+  /**
+   * List of fiends included with the update payload
+   * @type {Array}
+   */
+  const updatedFields = Object.keys(requestOptions.payload[0].replace)
+
+  // If the update payload includes restricted fields, the update request should
+  // be rejected.
+  if (utils.hasCommonElement(restrictedFields, updatedFields)) {
+    return Promise.reject({
+      type: errors.UN_AUTHORIZED,
+      message: 'Attempted to modify a room with restricted fields: ' +
+        restrictedFields.join(', ')
+    })
+  }
+
+  // Make sure that the user is a member of the room he is updating.
   if (user.rooms.indexOf(requestOptions.ids[0]) === -1) {
-    return Promise.reject({ type: errors.UN_AUTHORIZED })
+    return Promise.reject({
+      type: errors.UN_AUTHORIZED,
+      message: 'Attempted to change a room you are not a member of'
+    })
   }
 }
 

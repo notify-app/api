@@ -1,6 +1,7 @@
 'use strict'
 
 const errors = require('../errors')
+const utils = require('../utils')
 
 module.exports = (requestOptions, user, notifyStore) => {
   switch (requestOptions.method) {
@@ -68,13 +69,16 @@ function authFind (requestOptions, user, notifyStore) {
 function authCreate (requestOptions, user) {
   const roomValid = user.rooms.indexOf(requestOptions.payload[0].room) !== -1
 
-  requestOptions.payload[0].user = user.id
-  requestOptions.payload[0].created = new Date()
-
   if (roomValid) return Promise.resolve()
 
+  // Default restricted fields.
+  requestOptions.payload[0].user = user.id
+  requestOptions.payload[0].created = new Date()
+  requestOptions.payload[0].deleted = false
+
   return Promise.reject({
-    type: errors.UN_AUTHORIZED
+    type: errors.UN_AUTHORIZED,
+    message: 'Attempted to create a message in a room you are not a member of'
   })
 }
 
@@ -87,12 +91,22 @@ function authCreate (requestOptions, user) {
  *                                 own details. Rejected otherwise.
  */
 function authUpdate (requestOptions, user) {
-  const changes = requestOptions.payload[0].replace
-  delete changes.room
-  delete changes.user
+  const restrictedFields = [ 'created', 'user', 'room' ]
+  const updatedFields = Object.keys(requestOptions.payload[0].replace)
+
+  if (utils.hasCommonElement(restrictedFields, updatedFields)) {
+    return Promise.reject({
+      type: errors.UN_AUTHORIZED,
+      message: 'Attempted to update a message with restricted fields: ' +
+        restrictedFields.join(', ')
+    })
+  }
 
   if (user.messages.indexOf(requestOptions.ids[0]) === -1) {
-    return Promise.reject({ type: errors.NOT_FOUND })
+    return Promise.reject({
+      type: errors.UN_AUTHORIZED,
+      message: 'Attempted to modify a message you are not the owner of'
+    })
   }
 }
 

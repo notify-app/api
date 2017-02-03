@@ -1,7 +1,7 @@
 'use strict'
 
 module.exports = (fortune, err) => {
-  const output = new fortune.errors.UnauthorizedError('Unauthorized')
+  const output = new fortune.errors.UnauthorizedError(err.message)
 
   output.meta = {
     headers: {
