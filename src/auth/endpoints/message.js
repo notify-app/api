@@ -1,7 +1,6 @@
 'use strict'
 
 const errors = require('../errors')
-const utils = require('../utils')
 
 module.exports = (requestOptions, user, notifyStore) => {
   switch (requestOptions.method) {
@@ -91,16 +90,10 @@ function authCreate (requestOptions, user) {
  *                                 own details. Rejected otherwise.
  */
 function authUpdate (requestOptions, user) {
-  const restrictedFields = [ 'created', 'user', 'room' ]
-  const updatedFields = Object.keys(requestOptions.payload[0].replace)
-
-  if (utils.hasCommonElement(restrictedFields, updatedFields)) {
-    return Promise.reject({
-      type: errors.UN_AUTHORIZED,
-      message: 'Attempted to update a message with restricted fields: ' +
-        restrictedFields.join(', ')
-    })
-  }
+  // Remove modifications to restricted fields.
+  delete requestOptions.payload[0].replace.created
+  delete requestOptions.payload[0].replace.user
+  delete requestOptions.payload[0].replace.room
 
   if (user.messages.indexOf(requestOptions.ids[0]) === -1) {
     return Promise.reject({

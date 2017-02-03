@@ -2,7 +2,6 @@
 
 const errors = require('../errors')
 const grants = require('../grants')
-const utils = require('../utils')
 
 module.exports = (requestOptions, user, notifyStore) => {
   switch (requestOptions.method) {
@@ -60,33 +59,12 @@ function authCreate (requestOptions, user, notifyStore) {
  *                                 own details. Rejected otherwise.
  */
 function authUpdate (requestOptions, user) {
-  /**
-   * List of fields which should not be included with the update payload.
-   * @type {Array}
-   */
-  const restrictedFields = [
-    'username',
-    'internalID',
-    'bot',
-    'rooms',
-    'messages'
-  ]
-
-  /**
-   * List of fiends included with the update payload
-   * @type {Array}
-   */
-  const updatedFields = Object.keys(requestOptions.payload[0].replace)
-
-  // If the update payload includes restricted fields, the update request should
-  // be rejected.
-  if (utils.hasCommonElement(restrictedFields, updatedFields)) {
-    return Promise.reject({
-      type: errors.UN_AUTHORIZED,
-      message: 'Attempted to modify a restricted fields: ' +
-        restrictedFields.join(', ')
-    })
-  }
+  // Remove modifications to restricted fields.
+  requestOptions.payload[0].replace.username
+  requestOptions.payload[0].replace.internalID
+  requestOptions.payload[0].replace.bot
+  requestOptions.payload[0].replace.rooms
+  requestOptions.payload[0].replace.messages
 
   // Make sure that the user is updating his own info.
   if (user.id === requestOptions.ids[0]) return Promise.resolve()
