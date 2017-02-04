@@ -8,7 +8,7 @@ module.exports = (requestOptions, user) => {
     case 'find': return authFind(requestOptions, user)
 
     // ROOMS can be created.
-    case 'create': return authFind(requestOptions, user)
+    case 'create': return authCreate(requestOptions)
 
     // ROOMS can only be UPDATED by USERS who are members the ROOM itself.
     case 'update': return authUpdate(requestOptions, user)
