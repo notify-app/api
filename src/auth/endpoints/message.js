@@ -68,12 +68,12 @@ function authFind (requestOptions, user, notifyStore) {
 function authCreate (requestOptions, user) {
   const roomValid = user.rooms.indexOf(requestOptions.payload[0].room) !== -1
 
-  if (roomValid) return Promise.resolve()
-
   // Default restricted fields.
   requestOptions.payload[0].user = user.id
   requestOptions.payload[0].created = new Date()
   requestOptions.payload[0].deleted = false
+
+  if (roomValid) return Promise.resolve()
 
   return Promise.reject({
     type: errors.UN_AUTHORIZED,
