@@ -37,12 +37,14 @@ function authCreate (requestOptions, user, notifyStore) {
       const creatingBot = (requestOptions.payload[0].bot === true)
       const creatingUser = (requestOptions.payload[0].bot === false)
 
-      if (canCreateBot && creatingBot) return Promise.resolve()
-      if (canCreateUser && creatingUser) return Promise.resolve()
-
       // Default restricted fields.
       requestOptions.payload[0].rooms = []
+      requestOptions.payload[0].created = []
       requestOptions.payload[0].messages = []
+      requestOptions.payload[0].creator = user.id
+
+      if (canCreateBot && creatingBot) return Promise.resolve()
+      if (canCreateUser && creatingUser) return Promise.resolve()
 
       return Promise.reject({
         type: errors.UN_AUTHORIZED,
@@ -64,6 +66,8 @@ function authUpdate (requestOptions, user) {
   requestOptions.payload[0].replace.internalID
   requestOptions.payload[0].replace.bot
   requestOptions.payload[0].replace.rooms
+  requestOptions.payload[0].replace.creator
+  requestOptions.payload[0].replace.created
   requestOptions.payload[0].replace.messages
 
   // Make sure that the user is updating his own info.
