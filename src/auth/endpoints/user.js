@@ -42,7 +42,7 @@ function authCreate (requestOptions, user, notifyStore) {
       requestOptions.payload[0].created = []
       requestOptions.payload[0].messages = []
       requestOptions.payload[0].grants = []
-      requestOptions.payload[0].token = []
+      requestOptions.payload[0].token = null
       requestOptions.payload[0].creator = user.id
 
       if (canCreateBot && creatingBot) return Promise.resolve()
