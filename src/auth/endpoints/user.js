@@ -41,6 +41,8 @@ function authCreate (requestOptions, user, notifyStore) {
       requestOptions.payload[0].rooms = []
       requestOptions.payload[0].created = []
       requestOptions.payload[0].messages = []
+      requestOptions.payload[0].grants = []
+      requestOptions.payload[0].token = []
       requestOptions.payload[0].creator = user.id
 
       if (canCreateBot && creatingBot) return Promise.resolve()
@@ -65,6 +67,8 @@ function authUpdate (requestOptions, user) {
   requestOptions.payload[0].replace.username
   requestOptions.payload[0].replace.internalID
   requestOptions.payload[0].replace.bot
+  requestOptions.payload[0].replace.grants
+  requestOptions.payload[0].replace.token
   requestOptions.payload[0].replace.rooms
   requestOptions.payload[0].replace.creator
   requestOptions.payload[0].replace.created
