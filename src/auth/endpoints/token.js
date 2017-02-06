@@ -41,11 +41,11 @@ function authCreate (requestOptions, user, notifyStore) {
       const token = requestOptions.payload[0]
 
       // Newly created tokens must have info about the user they belong to.
-      const hasUserInfo = (token.user === undefined)
+      const hasUserInfo = (token.user !== undefined)
 
       // Tokens can only be created for users who have been created by the user
       // creating the token.
-      const userAffectedIsChild = user.created.indexOf(token.user.id) === -1
+      const userAffectedIsChild = user.created.indexOf(token.user) !== -1
       
       if (!hasUserInfo || !userAffectedIsChild) {
         return Promise.reject({
