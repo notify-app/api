@@ -1,5 +1,6 @@
 'use strict'
 
+const hat = require('hat')
 const errors = require('../errors')
 const grants = require('../grants')
 
@@ -24,6 +25,9 @@ module.exports = (requestOptions, user, notifyStore) => {
 function authCreate (requestOptions, user, notifyStore) {
   return grants(notifyStore)
     .then(grants => {
+      // Create a new access token.
+      requestOptions.payload[0].token = hat()
+
       const canCreateToken = user.grants.indexOf(grants['CREATE_TOKEN']) !== -1
       if (canCreateToken === true) return Promise.resolve()
       return Promise.reject({

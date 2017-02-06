@@ -11,6 +11,7 @@
   "dependencies": {
     "fortune-http": "1.0.0",
     "fortune-json-api": "2.0.14",
+    "hat": "0.0.3",
     "ipc-emitter": "0.2.1",
     "minimist": "1.2.0",
     "notify-middleware": "0.1.0",
