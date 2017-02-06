@@ -25,15 +25,41 @@ module.exports = (requestOptions, user, notifyStore) => {
 function authCreate (requestOptions, user, notifyStore) {
   return grants(notifyStore)
     .then(grants => {
-      // Create a new access token.
-      requestOptions.payload[0].token = hat()
-
+      const canCreateBot = user.grants.indexOf(grants['CREATE_BOT']) !== -1
       const canCreateToken = user.grants.indexOf(grants['CREATE_TOKEN']) !== -1
-      if (canCreateToken === true) return Promise.resolve()
-      return Promise.reject({
-        type: errors.UN_AUTHORIZED,
-        message: 'You are not allowed to create Access Tokens'
-      })
+
+      // If user cannot create bots or tokens, he is not allowed to create a
+      // token.
+      if (!canCreateBot && !canCreateToken) {
+        return Promise.reject({
+          type: errors.UN_AUTHORIZED,
+          message: 'You are not allowed to create Access Tokens'
+        })
+      }
+
+      // Store token object to be persisted.
+      const token = requestOptions.payload[0]
+
+      // Newly created tokens must have info about the user they belong to.
+      const hasUserInfo = (token.user === undefined)
+
+      // Tokens can only be created for users who have been created by the user
+      // creating the token.
+      const userAffectedIsChild = user.created.indexOf(token.user.id) === -1
+      
+      if (!hasUserInfo || !userAffectedIsChild) {
+        return Promise.reject({
+          type: errors.UN_AUTHORIZED,
+          message: 'You are not allowed to create tokens for users who have not'
+            + ' been created by yourself'
+        })
+      }
+
+      // Default values.
+      requestOptions.payload[0].token = hat()
+      requestOptions.payload[0].created = new Date()
+
+      return Promise.resolve()
     })
 }
 
