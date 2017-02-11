@@ -12,6 +12,9 @@ module.exports = (requestOptions, user, notifyStore) => {
     // TOKENS can only be CREATED.
     case 'create': return authCreate(requestOptions, user, notifyStore)
 
+    // TOKENS can only be MODIFIED.
+    case 'update': return authUpdate(requestOptions, user, notifyStore)
+
     // TOKENS cannot be MODIFIED, DELETED or READ from JSONAPI endpoint.
     default: return authDefault()
   }
@@ -131,6 +134,81 @@ function authCreate (requestOptions, user, notifyStore) {
 }
 
 /**
+ * authUpdate verifies that the consumer is updating a token which belongs to a
+ * bot that he has created himself.
+ * @param  {Object} requestOptions Info about HTTP Request.
+ * @param  {Object} user           Info about user.
+ * @param  {Object} notifyStore    Notify store instance.
+ * @return {Promise}               Resolved if the consumer is allowed to modify
+ *                                 the token, rejected otherwise.
+ */
+function authUpdate (requestOptions, user, notifyStore) {
+  return grants(notifyStore).then(grants => {
+    /**
+     * Indicates whether the consumer is allowed to create bots.
+     * @type {Boolean}
+     */
+    const canCreateBot = user.grants.indexOf(grants['CREATE_BOT']) !== -1
+
+    // If user cannot create bots or tokens, he is not allowed to modify a
+    // token.
+    if (!canCreateBot) {
+      return Promise.reject({
+        type: errors.UN_AUTHORIZED,
+        message: 'You are not allowed to modify Access Tokens'
+      })
+    }
+
+    // Remove modifications to restricted fields.
+    delete requestOptions.payload[0].replace.user
+    delete requestOptions.payload[0].replace.created
+    delete requestOptions.payload[0].replace.token
+
+    /**
+     * ID of token being modified
+     * @type {String}
+     */
+    const tokenID = requestOptions.ids[0]
+
+    return notifyStore.store.find(notifyStore.types.TOKENS, tokenID)
+      .then(({payload}) => {
+        /**
+         * Token being modified
+         * @type {Object}
+         */
+        const token = payload.records[0]
+
+        // if the consumer is modifying a token which belongs to a user who he
+        // hasn't created, stop the modify request.
+        if (user.created.indexOf(token.user) === -1) {
+          return Promise.reject({
+            type: errors.UN_AUTHORIZED,
+            message: 'You are only allowed to modify Access Tokens that belong '
+              + 'to your own bots'
+          })
+        }
+
+        return notifyStore.store.find(notifyStore.types.USERS, token.user)
+      }).then(({payload}) => {
+        /**
+         * Owner of the token being modified
+         * @type {Object}
+         */
+        const user = payload.records[0]
+
+        // If the owner of the token is not a bot, stop the modify request.
+        if (user.bot === false) {
+          return Promise.reject({
+            type: errors.UN_AUTHORIZED,
+            message: 'You are only allowed to modify Access Tokens that belong '
+              + 'to your own bots'
+          })
+        }
+      })
+  })
+}
+
+/**
  * authDefault is invoked when the user tries to FIND, MODIFY or DELETE a
  * TOKEN resource. When this happens the request is rejected.
  * @return {Promise} Rejected promise containing info about the allowed methods
@@ -139,6 +217,6 @@ function authCreate (requestOptions, user, notifyStore) {
 function authDefault () {
   return Promise.reject({
     type: errors.METHOD_NOT_ALLOWED,
-    allowed: 'MODIFY, DELETE'
+    allowed: 'DELETE'
   })
 }
