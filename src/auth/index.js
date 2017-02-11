@@ -12,7 +12,7 @@ const unAuthorizedError = require('./errors/un-authorized')
 const methodNotAllowedError = require('./errors/method-not-allowed')
 
 module.exports = (notifyStore, requestOptions) => {
-  return utils.getTokenFromRequest(requestOptions.meta.headers, config.session)
+  return retrieveToken(requestOptions.meta.headers)
     .then(token => retrieveUser(token, requestOptions))
     .then(user => verify(user, requestOptions))
     .catch(err => {
@@ -36,6 +36,20 @@ module.exports = (notifyStore, requestOptions) => {
     })
 
   /**
+   * retrieveToken retrieves the access token of the consumer.
+   * @param  {Object} headers HTTP Headers.
+   * @return {Promise}        Resolved if the otken is retrieved, rejected
+   *                          otherwise.
+   */
+  function retrieveToken (headers) {
+    return utils.getTokenFromRequest(headers, config.session)
+      .catch(() => Promise.reject({
+        type: errors.UN_AUTHORIZED,
+        message: 'No token found'
+      }))
+  }
+
+  /**
    * retrieveUser retrieves the user info of the consumer from the Database.
    * @param  {String} token          The Access Token ID to be used to retrieve
    *                                 the user info.
@@ -45,15 +59,40 @@ module.exports = (notifyStore, requestOptions) => {
    *                                 otherwise.
    */
   function retrieveUser (token, requestOptions) {
+    // Retrieve whether user doing the request is a bot or not.
+    const isBotRequest = requestOptions.meta.headers[config.session.header]
+      !== undefined
+
     const opts = {
       notifyStore,
-      maxAge: config.session.maxAge,
-      origin: requestOptions.meta.headers.origin
+      origin: requestOptions.meta.headers.origin,
+      // Access Tokens of bots do not expire.
+      maxAge: (isBotRequest) ? undefined : config.session.maxAge
     }
 
     return utils.getUserByToken(token, opts)
-      .then(({payload}) => payload.records[0])
-      .catch(() => Promise.reject({ type: errors.UN_AUTHORIZED }))
+      .then(({payload}) => {
+        // Store owner of token.
+        const user = payload.records[0]
+
+        // If the request has been a bot request and the owner of the token is
+        // not a bot, disallow access.
+        if (isBotRequest && user.bot === false) {
+          return Promise.reject('Bot Request with a non-bot User')
+        }
+
+        // If the request has been a user request and the owner of the token is
+        // a bot, disallow access.
+        if (!isBotRequest && user.bot === true) {
+          return Promise.reject('User Request with a Bot user')
+        }
+
+        // Else continue.
+        return user
+      })
+      .catch(() => Promise.reject({
+        type: errors.UN_AUTHORIZED
+      }))
   }
 
   /**
