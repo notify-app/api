@@ -29,68 +29,67 @@ module.exports = (requestOptions, user, notifyStore) => {
  */
 function authCreate (requestOptions, user, notifyStore) {
   // Make sure that the creator is allowed to create the user.
-  return grants(notifyStore)
-    .then(grants => {
-      const canCreateBot = (user.grants.indexOf(grants['CREATE_BOT']) !== -1)
-      const canCreateUser = (user.grants.indexOf(grants['CREATE_USER']) !== -1)
+  return grants(notifyStore).then(grants => {
+    const canCreateBot = (user.grants.indexOf(grants['CREATE_BOT']) !== -1)
+    const canCreateUser = (user.grants.indexOf(grants['CREATE_USER']) !== -1)
 
-      const creatingBot = (requestOptions.payload[0].bot === true)
-      const creatingUser = (requestOptions.payload[0].bot === false)
+    const creatingBot = (requestOptions.payload[0].bot === true)
+    const creatingUser = (requestOptions.payload[0].bot === false)
 
-      // Store the user being created.
-      const newUser = requestOptions.payload[0]
+    // Store the user being created.
+    const newUser = requestOptions.payload[0]
 
+    // Default restricted fields.
+    newUser.created = []
+    newUser.messages = []
+    newUser.grants = []
+    newUser.token = null
+    newUser.creator = user.id
+
+    // When creating a user, the creator is only required to have the
+    // CREATE_TOKEN grant.
+    if (canCreateUser && creatingUser) {
       // Default restricted fields.
-      newUser.created = []
-      newUser.messages = []
-      newUser.grants = []
-      newUser.token = null
-      newUser.creator = user.id
+      newUser.rooms = []
+      return Promise.resolve()
+    }
 
-      // When creating a bot, the following checks are made:
-      //   * Bots can only be placed in rooms which the creator is a member of.
-      //   * Bots cannot be placed in private rooms.
-      if (canCreateBot && creatingBot) {
-        // Make sure that the rooms which the bot will be in are rooms which the
-        // creator of the bot is a member of.
-        for (let index = 0; index < newUser.rooms.length; index++) {
-          if (user.rooms.indexOf(newUser.rooms[index]) === -1) {
+    // When creating a bot, the following checks are made:
+    //   * Bots can only be placed in rooms which the creator is a member of.
+    //   * Bots cannot be placed in private rooms.
+    if (canCreateBot && creatingBot) {
+      // Make sure that the rooms which the bot will be in are rooms which the
+      // creator of the bot is a member of.
+      for (let index = 0; index < newUser.rooms.length; index++) {
+        if (user.rooms.indexOf(newUser.rooms[index]) === -1) {
+          return Promise.reject({
+            type: errors.UN_AUTHORIZED,
+            message: 'You can only create bots in rooms you\'re a member of'
+          })
+        }
+      }
+
+      // Make sure that the rooms the bot will be in are public rooms.
+      return notifyStore.store.find(notifyStore.types.ROOMS, newUser.rooms)
+        .then(({payload}) => {
+          const records = payload.records
+
+          for (let index = 0; index < records.length; index++) {
+            if (records[index].private === false) continue
+
             return Promise.reject({
               type: errors.UN_AUTHORIZED,
-              message: 'You can only create bots in rooms you\'re a member of'
+              message: 'You can only create bots in public rooms'
             })
           }
-        }
+        })
+    }
 
-        // Make sure that the rooms the bot will be in are public rooms.
-        return notifyStore.store.find(notifyStore.types.ROOMS, newUser.rooms)
-          .then(({payload}) => {
-            const records = payload.records
-
-            for (let index = 0; index < records.length; index++) {
-              if (records[index].private === false) continue
-
-              return Promise.reject({
-                type: errors.UN_AUTHORIZED,
-                message: 'You can only create bots in public rooms'
-              })
-            }
-          })
-      }
-
-      // When creating a user, the creator is only required to have the
-      // CREATE_TOKEN grant.
-      if (canCreateUser && creatingUser) {
-        // Default restricted fields.
-        newUser.rooms = []
-        return Promise.resolve()
-      }
-
-      return Promise.reject({
-        type: errors.UN_AUTHORIZED,
-        message: 'You are not allowed to create new users'
-      })
+    return Promise.reject({
+      type: errors.UN_AUTHORIZED,
+      message: 'You are not allowed to create new users'
     })
+  })
 }
 
 /**
