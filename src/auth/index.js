@@ -30,7 +30,8 @@ module.exports = (notifyStore, requestOptions) => {
           throw methodNotAllowedError(notifyStore.fortune, err)
         }
         default: {
-          throw new Error(err)
+          if (typeof err === 'string') err = new Error(err)
+          throw err
         }
       }
     })
@@ -78,21 +79,24 @@ module.exports = (notifyStore, requestOptions) => {
         // If the request has been a bot request and the owner of the token is
         // not a bot, disallow access.
         if (isBotRequest && user.bot === false) {
-          return Promise.reject('Bot Request with a non-bot User')
+          return Promise.reject({
+            type: errors.UN_AUTHORIZED,
+            message: 'Bot Request with a non-bot User'
+          })
         }
 
         // If the request has been a user request and the owner of the token is
         // a bot, disallow access.
         if (!isBotRequest && user.bot === true) {
-          return Promise.reject('User Request with a Bot user')
+          return Promise.reject({
+            type: errors.UN_AUTHORIZED,
+            message: 'User Request with a Bot user'
+          })
         }
 
         // Else continue.
         return user
       })
-      .catch(() => Promise.reject({
-        type: errors.UN_AUTHORIZED
-      }))
   }
 
   /**
