@@ -14,8 +14,8 @@ module.exports = (requestOptions, user, notifyStore) => {
     // USERS can only modify their own user or bots they have created.
     case 'update': return authUpdate(requestOptions, user, notifyStore)
 
-    // USERS cannot be deleted.
-    case 'delete': return authDelete()
+    // USERS can only delete bots which they have created.
+    case 'delete': return authDelete(requestOptions, user, notifyStore)
   }
 }
 
@@ -170,14 +170,57 @@ function authUpdate (requestOptions, user, notifyStore) {
 }
 
 /**
- * authDefault is invoked when the user tries to DELETE a USER resource. When
- * this happens the request is rejected.
- * @return {Promise} Rejected promise containing info about the allowed methods
- *                   and HTTP Response status.
+ * authDelete verifies that the user being deleted is a bot which the consumer
+ * has created.
+ * @param  {Object} requestOptions Info about HTTP Request.
+ * @param  {Object} user           Info about creator.
+ * @param  {Object} notifyStore    Notify store instance.
+ * @return {Promise} Resolved when the user being deleted is a bot created by
+ *                   the consumer. Rejected otherwise.
  */
-function authDelete () {
-  return Promise.reject({
-    type: errors.METHOD_NOT_ALLOWED,
-    allowed: 'GET, POST, PATCH'
+function authDelete (requestOptions, user, notifyStore) {
+  /**
+   * isChildDelete indicates whether the user is deleting a user he has created.
+   * @type {Boolean}
+   */
+  const isChildDelete = user.created.indexOf(requestOptions.ids[0]) !== -1
+
+  // If the consumer is not deleting a user he has created, stop delete reuqest.
+  if (!isChildDelete) {
+    return Promise.reject({
+      type: errors.UN_AUTHORIZED,
+      message: 'You are allowed to delete bots you have created'
+    })
+  }
+
+  // When the consumer is deleting another user, we need to verify that:
+  //   * The consumer has CREATE_BOT grant
+  //   * The consumer is deleting a bot.
+  return grants(notifyStore).then(grants => {
+    /**
+     * canCreateBot indicates whether the user has the CREATE_BOT grant.
+     * @type {Boolean}
+     */
+    const canCreateBot = (user.grants.indexOf(grants['CREATE_BOT']) !== -1)
+
+    // If the user cannot create bots, he cannot delete bots either and
+    // therefore we need to stop the delete request.
+    if (!canCreateBot) {
+      return Promise.reject({
+        type: errors.UN_AUTHORIZED,
+        message: 'You are not allowed to delete users'
+      })
+    }
+  }).then(() => {
+    const botID = requestOptions.ids[0]
+    return notifyStore.store.find(notifyStore.types.USERS, botID)
+  }).then(({payload}) => {
+    // If the user is not a bot, stop the delete request.
+    if (payload.records[0].bot === false) {
+      return Promise.reject({
+        type: errors.UN_AUTHORIZED,
+        message: 'You are allowed to delete bots you have created'
+      })
+    }
   })
 }
