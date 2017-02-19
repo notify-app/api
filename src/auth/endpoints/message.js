@@ -56,29 +56,57 @@ function authFind (requestOptions, user, notifyStore) {
 }
 
 /**
- * authCreate verifies that:
- *   1. The author of the message is the consumer.
- *   2. The room where the message is created is a room which the user has
- *      access to.
+ * authCreate verifies that the message is being created inside a room which the
+ * consumer is a member of and also include unread info in the newly created
+ * message.
  * @param  {Object} requestOptions Info about HTTP Request.
  * @param  {Object} user           Info about user.
+ * @param  {Object} notifyStore    Notify store instance.
  * @return {Promise}               Resolved when the consumer is updating his
  *                                 own details. Rejected otherwise.
  */
-function authCreate (requestOptions, user) {
-  const roomValid = user.rooms.indexOf(requestOptions.payload[0].room) !== -1
+function authCreate (requestOptions, user, notifyStore) {
+  /**
+   * roomID in which the message will be written in.
+   * @type {String}
+   */
+  const roomID = requestOptions.payload[0].room 
+
+  // Check that the message is going to be written in a room which the consumer
+  // is a member of, if not stop creation request.
+  if (user.rooms.indexOf(roomID) === -1) {
+    return Promise.reject({
+      type: errors.UN_AUTHORIZED,
+      message: 'Attempted to create a message in a room you are not a member of'
+    })
+  }
 
   // Default restricted fields.
   requestOptions.payload[0].user = user.id
   requestOptions.payload[0].created = new Date()
   requestOptions.payload[0].deleted = false
+  requestOptions.payload[0].unread = []
 
-  if (roomValid) return Promise.resolve()
+  // Before creating the message, we need to populate the 'unread' attribute
+  // with non-bot users who aren't the consumer.
+  return notifyStore.store.find(notifyStore.types.ROOMS, roomID)
+    .then(({payload}) => {
+      const promises = []
 
-  return Promise.reject({
-    type: errors.UN_AUTHORIZED,
-    message: 'Attempted to create a message in a room you are not a member of'
-  })
+      payload.records[0].users.forEach(userID => {
+        const promise = notifyStore.store.find(notifyStore.types.USERS, userID)
+          .then(({payload}) => payload.records[0])
+
+        promises.push(promise)
+      })
+
+      return Promise.all(promises)
+    }).then(members => {
+      members.forEach(member => {
+        if (member.bot === true || member.id === user.id) return
+        requestOptions.payload[0].unread.push(member.id)
+      })
+    })
 }
 
 /**
