@@ -122,6 +122,7 @@ function authUpdate (requestOptions, user) {
   delete requestOptions.payload[0].replace.created
   delete requestOptions.payload[0].replace.user
   delete requestOptions.payload[0].replace.room
+  delete requestOptions.payload[0].replace.unread
 
   if (user.messages.indexOf(requestOptions.ids[0]) === -1) {
     return Promise.reject({
