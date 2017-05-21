@@ -12,6 +12,11 @@ const unAuthorizedError = require('./errors/un-authorized')
 const methodNotAllowedError = require('./errors/method-not-allowed')
 
 module.exports = (notifyStore, requestOptions) => {
+  // Restrict queries if request is coming from an HTTP Request.
+  if (requestOptions.meta == null || requestOptions.meta.headers == null) {
+    return Promise.resolve()
+  }
+
   return retrieveToken(requestOptions.meta.headers)
     .then(token => retrieveUser(token, requestOptions))
     .then(user => verify(user, requestOptions))
@@ -65,17 +70,13 @@ module.exports = (notifyStore, requestOptions) => {
       !== undefined
 
     const opts = {
-      notifyStore,
       origin: requestOptions.meta.headers.origin,
       // Access Tokens of bots do not expire.
       maxAge: (isBotRequest) ? undefined : config.session.maxAge
     }
 
-    return utils.getUserByToken(token, opts)
-      .then(({payload}) => {
-        // Store owner of token.
-        const user = payload.records[0]
-
+    return utils.getUserByToken(token, notifyStore, opts)
+      .then(user => {
         // If the request has been a bot request and the owner of the token is
         // not a bot, disallow access.
         if (isBotRequest && user.bot === false) {
